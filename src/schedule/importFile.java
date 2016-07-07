@@ -34,11 +34,12 @@ import utils.FilesEnum;
 
 public class importFile {
 
+        public static boolean isImported=false;
 	private int fileType;
 	private JFrame frame;
 	private JTextField textField;
 	static importFile window;
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -64,7 +65,7 @@ public class importFile {
 		frame.setBounds(100, 100, 731, 476);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		JLabel lblUniversityEditPage = new JLabel("Course Data Import");
+		JLabel lblUniversityEditPage = new JLabel("Data Import");
 		lblUniversityEditPage.setForeground(SystemColor.activeCaption);
 		lblUniversityEditPage.setBackground(SystemColor.activeCaption);
 		lblUniversityEditPage.setFont(new Font("Tahoma", Font.PLAIN, 20));
@@ -76,7 +77,7 @@ public class importFile {
 		
 		JButton btnImport = new JButton("Import");
 		btnImport.setBackground(SystemColor.activeCaption);
-		JFileChooser fileChooser = new JFileChooser();
+		final JFileChooser fileChooser = new JFileChooser();
 		btnImport.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent arg0)
@@ -103,7 +104,12 @@ public class importFile {
 					    		String message =count+" Record(s) imported.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
 					    	
-					    	}catch(IOException | ArrayIndexOutOfBoundsException e){
+					    	}catch(IOException  e){
+					    		String message = "Please Give path to a correct File University Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}
+                                                catch( ArrayIndexOutOfBoundsException e){
 					    		String message = "Please Give path to a correct File University Data File.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
 								e.printStackTrace();
@@ -119,7 +125,11 @@ public class importFile {
 					    		String message =count+" Record(s) imported.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
 					    	
-					    	}catch(IOException | ArrayIndexOutOfBoundsException e){
+					    	}catch(IOException e){
+					    		String message = "Please Give path to a correct University Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}catch( ArrayIndexOutOfBoundsException e){
 					    		String message = "Please Give path to a correct University Data File.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
 								e.printStackTrace();
@@ -134,7 +144,11 @@ public class importFile {
 					    		String message =count+" Record(s) imported.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
 					    	
-					    	}catch(IOException | ArrayIndexOutOfBoundsException e){
+					    	}catch(IOException  e){
+					    		String message = "Please Give path to a correct Grad School Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}catch( ArrayIndexOutOfBoundsException e){
 					    		String message = "Please Give path to a correct Grad School Data File.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
 								e.printStackTrace();
@@ -150,13 +164,37 @@ public class importFile {
 					    		String message =count+" Record(s) imported.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
 					    	
-					    	}catch(IOException | ArrayIndexOutOfBoundsException e){
+					    	}catch(IOException e){
+					    		String message = "Please Give path to a correct Degree Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}catch( ArrayIndexOutOfBoundsException e){
 					    		String message = "Please Give path to a correct Degree Data File.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
 								e.printStackTrace();
 					    	}
 					    	
 					    }
+                                            else if(fileType==FilesEnum.DEGREE_REQ_FILE){
+					    	try{
+					    		FileParser parser =new FileParser();					    		
+					    		parser.saveDegreeReqs(parser.parse(selectedFile.getAbsolutePath()));
+					    		
+					    		String message =" Record(s) imported.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
+					    	
+					    	}catch(IOException e){
+					    		String message = "Please Give path to a correct Degree Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}catch( ArrayIndexOutOfBoundsException e){
+					    		String message = "Please Give path to a correct Degree Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}
+					    	
+					    }
+                                            
 					    
 					    else if(fileType==FilesEnum.COURSE_FILE){
 					    	try{
@@ -166,7 +204,11 @@ public class importFile {
 					    		String message =count+" Record(s) imported.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
 					    	
-					    	}catch(IOException | ArrayIndexOutOfBoundsException e){
+					    	}catch(IOException  e){
+					    		String message = "Please Give path to a correct Course Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}catch( ArrayIndexOutOfBoundsException e){
 					    		String message = "Please Give path to a correct Course Data File.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
 								e.printStackTrace();
@@ -182,7 +224,11 @@ public class importFile {
 					    		String message =count+" Record(s) imported.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
 					    	
-					    	}catch(IOException | ArrayIndexOutOfBoundsException e){
+					    	}catch(IOException  e){
+					    		String message = "Please Give path to a correct Faculty Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}catch( ArrayIndexOutOfBoundsException e){
 					    		String message = "Please Give path to a correct Faculty Data File.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
 								e.printStackTrace();
@@ -198,7 +244,12 @@ public class importFile {
 					    		String message =count+" Record(s) imported.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
 					    	
-					    	}catch(IOException | ArrayIndexOutOfBoundsException e){
+					    	}catch(IOException e){
+					    		String message = "Please Give path to a correct Students Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}
+                                                catch( ArrayIndexOutOfBoundsException e){
 					    		String message = "Please Give path to a correct Students Data File.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
 								e.printStackTrace();
@@ -213,7 +264,11 @@ public class importFile {
 					    		String message =count+" Record(s) imported.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.INFORMATION_MESSAGE);
 					    	
-					    	}catch(IOException | ArrayIndexOutOfBoundsException e){
+					    	}catch(IOException  e){
+					    		String message = "Please Give path to a correct Students Courses Data File.";
+								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
+								e.printStackTrace();
+					    	}catch( ArrayIndexOutOfBoundsException e){
 					    		String message = "Please Give path to a correct Students Courses Data File.";
 								JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
 								e.printStackTrace();
@@ -327,4 +382,43 @@ public class importFile {
 			prefs.remove("filePath");
 		}
 	}
+       static void importAllFiles(){
+           try{
+            //University
+            FileParser parser =new FileParser();
+            File selectedUnivFile= new File("E:\\test data\\TestDataUniversityName.csv");
+            int count=parser.saveUniversityInfo(parser.parse(selectedUnivFile.getAbsolutePath()));
+            
+            //Grad School
+            File selectedGradScoolFile= new File("E:\\test data\\TestDataUniversityName.csv");
+            parser.saveGradSchoolInfo(parser.parse(selectedGradScoolFile.getAbsolutePath()));
+            
+            //Faculty
+            File selectedFacultyFile= new File("E:\\test data\\TestDataFaculty.csv");
+            parser.saveFacultyInfo(parser.parse(selectedFacultyFile.getAbsolutePath()));
+            
+            //Degree
+            File selectedDegreeFile= new File("E:\\test data\\TestDataDegrees.csv");
+            parser.saveDegrees(parser.parse(selectedDegreeFile.getAbsolutePath()));
+            
+            //Degree plan
+            File selectedDegreePlanFile= new File("E:\\test data\\TestDataDegreePlanReq.csv");
+            parser.saveDegreePlanReq(parser.parse(selectedDegreePlanFile.getAbsolutePath()));
+            
+            //Course
+             File selectedCourseFile= new File("E:\\test data\\TestDataCourses.csv");
+             parser.saveCourseInfo((parser.parse(selectedCourseFile.getAbsolutePath())));
+             
+             //Semester
+             //importSemesterArray("TestDataSemesters.csv");
+             File selectedSemesterFile= new File("E:\\test data\\TestDataSemesters.csv");
+             parser.saveSemestersInfo(parser.parse(selectedSemesterFile.getAbsolutePath()));
+             
+             isImported=true;
+             
+           }catch(Exception e){
+               e.printStackTrace();
+           }
+            
+        }
 }

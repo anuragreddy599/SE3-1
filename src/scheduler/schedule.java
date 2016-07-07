@@ -1,1029 +1,855 @@
 package scheduler;
 
+import beans.Section;
+import beans.Course;
+import beans.Degree;
+import beans.DegreePlanReqs;
+import beans.DegreeReqs;
+import beans.Faculty;
+import beans.Section;
+import beans.Semester;
+import beans.Student;
+import beans.StudentCourse;
 import java.util.*;
 import java.io.File;
 import java.util.Scanner;
 
 import controller.MainController;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import org.apache.commons.lang.ArrayUtils;
+import registers.CourseRegister;
+import registers.DegreePlanReqsRegister;
+import registers.DegreeRegister;
+import registers.DegreeReqsRegister;
+import registers.FacultyRegister;
+import registers.SemesterRegister;
+import registers.StudentCourseRegister;
+import registers.StudentRegister;
+import schedule.generateschedule;
 
-class coursedata
-{
-	String name,code;
-	String[] stgrp,ins;
-	int credits,nostgrp,noins;;
-	char lab;
-	public coursedata()
-	{
-		name=new String();
-		code=new String();
-		stgrp=new String[100];
-		ins=new String[100];
-		nostgrp=0;
-		noins=0;
-	}
-}
 
-class stgrpdata
-{
-	String info,code;
-	int strength;
-	String[] course;
-	public stgrpdata()
-	{
-		info=new String();
-		code=new String();
-		course=new String[100];
-	}
-}
 
-class insdata
-{
-	String name,code;
-	String[] course;
-	public insdata()
-	{
-		name=new String();
-		code=new String();
-		course=new String[10];
-	}
-}
-
-class classdata
-{
-	String department,code;
-	int strength;
-	public classdata()
-	{
-		department=new String();
-		code=new String();
-	}
-}
-
-class inputdata
-{
-	coursedata[] course;
-	classdata[] rooms;
-	stgrpdata[] stgrp; //student group
-	insdata[] ins;
-	int noroom,nocourse,nostgrp,noins; // Number of ...
-	public inputdata()
-	{
-		course=new coursedata[100];
-		rooms=new classdata[100];
-		stgrp=new stgrpdata[100];
-		ins=new insdata[100];
-	}
-	boolean classformat(String l)
-	{
-		StringTokenizer st=new StringTokenizer(l," ");
-		if(st.countTokens()==3)
-			return(true);
-		else
-			return(false);
-	}
-	public void takeinput()//takes input from file input.txt 
-	{
-		try 
-		{
-			File file = new File("input.txt");
-			Scanner scanner = new Scanner(file);
-			while (scanner.hasNextLine()) 
-			{
-				String line = scanner.nextLine();
-				//input courses
-				MainController mainController = MainController.getInstance();
-				
-				if(line.equals("courses"))
-				{
-					int i=0;
-					while(!(line=scanner.nextLine()).equalsIgnoreCase("studentgroups"))
-					{
-						course[i]=new coursedata();
-						StringTokenizer st=new StringTokenizer(line," ");
-						course[i].name=st.nextToken();
-						course[i].code=st.nextToken();
-						course[i].credits=Integer.parseInt(st.nextToken());
-						st.nextToken();
-						course[i].lab=st.nextToken().charAt(0);
-						i++;
-					}
-					nocourse=i;
-				}
-				//input student groups
-				if(line.equalsIgnoreCase("studentgroups"))
-				{
-					int i=0,j,k;
-					while(!(line=scanner.nextLine()).equalsIgnoreCase("instructors"))
-					{
-						stgrp[i]=new stgrpdata();
-						StringTokenizer st=new StringTokenizer(line," ");
-						stgrp[i].info=st.nextToken();
-						stgrp[i].code=st.nextToken();
-						stgrp[i].strength=Integer.parseInt(st.nextToken());
-						j=0;
-						//courses that are assigned to this student group
-						while(st.hasMoreTokens())
-						{
-							stgrp[i].course[j++]=st.nextToken();
-							for(k=0;k<nocourse;k++)
-							{
-								if(course[k].code.equals(stgrp[i].course[j-1]))
-								{
-									course[k].stgrp[course[k].nostgrp++]=stgrp[i].code;
-								}
-							}        	        				
-						}
-						i++;
-					}
-					nostgrp=i;
-				}
-				//input instructors
-				if(line.equalsIgnoreCase("instructors"))
-				{
-					int i=0,j,k;
-					while(!(line=scanner.nextLine()).equalsIgnoreCase("classrooms"))
-					{
-						ins[i]=new insdata();
-						StringTokenizer st=new StringTokenizer(line," ");
-						ins[i].name=st.nextToken();
-						ins[i].code=st.nextToken();
-						j=0;
-						//courses that an instructor can teach
-						while(st.hasMoreTokens())
-						{
-							ins[i].course[j++]=st.nextToken();
-							for(k=0;k<nocourse;k++)
-							{
-								if(course[k].code.equals(ins[i].course[j-1]))
-								{
-									course[k].ins[course[k].noins++]=ins[i].code;
-								}
-							}
-						}
-						i++;
-					}
-					noins=i;
-				}
-				//input classrooms
-				if(line.equalsIgnoreCase("classrooms"))
-				{
-					int i=0;
-					while(classformat(line=scanner.nextLine()))
-					{
-						rooms[i]=new classdata();
-						StringTokenizer st=new StringTokenizer(line," ");
-						rooms[i].code=st.nextToken();
-						rooms[i].department=st.nextToken();
-						rooms[i].strength=Integer.parseInt(st.nextToken());
-						i++;
-					}
-					noroom=i;
-				}
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}	
-	}
-	int returnclassno()
-	{
-		return(noroom);
-	}
-	int returninsno()
-	{
-		return(noins);
-	}
-	int returnstgrpno()
-	{
-		return(nostgrp);
-	}
-	int returncourseno()
-	{
-		return(nocourse);
-	}
-}
-//define gene
-class gene
-{
-	int[] g;
-	gene(int course,int stdgrp,int ins)
-	{
-		g=new int[Integer.toBinaryString(course).length()+Integer.toBinaryString(stdgrp).length()+Integer.toBinaryString(ins).length()];
-	}
-}
-//define chromosome
-class chromosome
-{
-	gene[] period;	
-	chromosome(int rooms)
-	{
-		period=new gene[rooms*5*7];//no.of working days=5; no. working hours each day=7(8 to 12 and 1:30 to 4:30)
-	}
-	//determine fitness value of chromosome
-	double fitness(inputdata input,int norooms,int nocourse,int nostgrp,int noins)
-	{
-		int k,i,j,room=-1,flag;
-		double fitnessvalue=0,fit=0;
-		Integer.toBinaryString(norooms).length();
-		int lcourse=Integer.toBinaryString(nocourse).length();
-		int lstgrp=Integer.toBinaryString(nostgrp).length();
-		int lins=Integer.toBinaryString(noins).length();
-		String course="",stgrp="",ins="",tempst="",tempin="";
-		int st;
-		for(i=0;i<norooms*5*7;i++)
-		{
-			if(i%35==0)
-				room++;
-			//course for current gene
-			course="";
-			for(j=0;j<lcourse;j++)
-				course=course+period[i].g[j];
-			//stgrp for current gene
-			stgrp="";
-			for(j=lcourse;j<lcourse+lstgrp;j++)
-				stgrp=stgrp+period[i].g[j];
-
-			//ins for current gene;
-			ins="";
-			for(j=lcourse+lstgrp;j<lcourse+lstgrp+lins;j++)
-				ins=ins+period[i].g[j];
-			//integer value of stgrp
-			st=Integer.valueOf(stgrp,2);
-
-			Integer.valueOf(course,2);
-
-			Integer.valueOf(ins,2);
-
-			//check for the roomns and stgrp strength
-			if(input.rooms[room].strength>=input.stgrp[st].strength)
-				fit++;
-
-			//check for stgrp repeat
-			flag=1;
-			for(j=i+35;j<norooms*5*7;j+=35)
-			{
-				tempst="";
-				for(k=lcourse;k<lcourse+lstgrp;k++)
-					tempst=tempst+period[j].g[k];
-				if(tempst.equals(stgrp))
-					flag=0;
-			}
-			for(j=i-35;j>=0;j-=35)
-			{
-				tempst="";
-				for(k=lcourse;k<lcourse+lstgrp;k++)
-					tempst=tempst+period[j].g[k];
-				if(tempst.equals(stgrp))
-					flag=0;
-			}
-			if(flag==1)
-				fit++;
-
-			//check for ins repeat
-			flag=1;
-			for(j=i+35;j<norooms*5*7;j+=35)
-			{
-				tempin="";
-				for(k=lcourse+lstgrp;k<lcourse+lstgrp+lins;k++)
-					tempin=tempin+period[j].g[k];
-				if(tempin.equals(ins))
-				{	
-					flag=0;
-					break;
-				}
-			}
-			for(j=i-35;j>=0;j-=35)
-			{
-				tempin="";
-				for(k=lcourse+lstgrp;k<lcourse+lstgrp+lins;k++)
-					tempin=tempin+period[j].g[k];
-				if(tempin.equals(ins))
-				{
-					flag=0;
-					break;
-				}
-			}
-			if(flag==1)
-				fit++;
-
-			//lab fitness checking
-			/*if(input.course[cs].lab=='y'||input.course[cs].lab=='Y')
-			{
-				if((i%7==0)||(i%7==1)||(i%7==4))
-				{
-
-					if(((input.course[cs+1].lab=='y')||(input.course[cs+1].lab=='Y'))&&((input.course[cs+2].lab=='y')||(input.course[cs+2].lab=='Y')))
-
-				}
-			}*/
-		}
-		//calculate fitness value
-		fitnessvalue=fit/(norooms*35);
-		return(fitnessvalue);
-	}
-}
-
-//timetable
-class table
-{
-	String course;
-	String ins;
-	String room;
-	table(){
-		course="";
-		ins="";
-		room="";
-	}
-}
-class timetable
-{
-	private chromosome sol;
-	static table[][][] ttable;
-	inputdata input;
-	int nostgrp,noclass,noins,nocourse;
-	timetable(chromosome solution,int stgrp1,int nclass,int ins,int course,inputdata input1)
-	{
-		sol=solution;
-		nostgrp=stgrp1;
-		ttable=new table[nostgrp][7][5];
-		input=input1;
-		int i,j,k;
-		for(i=0;i<nostgrp;i++)
-		{
-			for(j=0;j<7;j++)
-			{
-				for(k=0;k<5;k++)
-					ttable[i][j][k]=new table();
-			}
-		}
-		noclass=nclass;
-		noins=ins;
-		nocourse=course;
-	}
-	void findtable()
-	{
-		double[] time={8.0,9.0,10.0,11.0,1.0,2.0,3.0}; 
-		int lcourse=Integer.toBinaryString(nocourse).length();
-		int lstgrp=Integer.toBinaryString(nostgrp).length();
-		int lins=Integer.toBinaryString(noins).length();
-		String[] day={"Mon","Tue","Wed","Thurs","Fri"};
-		int i,j,k,cs,st,in,room=-1,d=-1,t=0;
-		double x;
-		String course,stgrp,ins;
-		for(i=0;i<noclass*35;i++)
-		{
-
-			if(i%35==0)
-			{
-				room++;
-				d=-1;
-				//t=0;
-			}
-			if((i%7==0))
-			{
-				t=0;
-				d++;
-			}	
-			//course for current gene
-			course="";
-			for(j=0;j<lcourse;j++)
-				course=course+sol.period[i].g[j];
-			//stgrp for current gene
-			stgrp="";
-			for(j=lcourse;j<lcourse+lstgrp;j++)
-				stgrp=stgrp+sol.period[i].g[j];
-
-			//ins for current gene;
-			ins="";
-			for(j=lcourse+lstgrp;j<lcourse+lstgrp+lins;j++)
-				ins=ins+sol.period[i].g[j];
-			//integer value of stgrp
-			st=Integer.valueOf(stgrp,2);
-
-			//integer value of course
-			cs=Integer.valueOf(course,2);
-
-			//integer value of ins
-			in=Integer.valueOf(ins,2);
-
-			ttable[st][t][d]=new table();
-			ttable[st][t][d].course=ttable[st][t][d].course+input.course[cs].code;
-			ttable[st][t][d].ins=ttable[st][t][d].ins+input.ins[in].code;
-			ttable[st][t][d].room=ttable[st][t][d].room+input.rooms[room].code;
-			t++;
-		}
-		for(i=0;i<nostgrp;i++)
-		{
-			for(j=0;j<7;j++)
-			{
-				for(k=0;k<5;k++)
-					if(ttable[i][j][k].course.equals(""))
-					{
-						ttable[i][j][k].course="--";
-						ttable[i][j][k].room="--";
-						ttable[i][j][k].ins="--";
-					}
-			}
-		}
-		System.out.println("\n"+"Time table for given input of Courses:-");
-		for(i=0;i<nostgrp;i++)
-		{	
-			System.out.println("===============================================================================================");
-			System.out.println("**********************************\t"+input.stgrp[i].code+"\t**************************************");
-			System.out.println("===============================================================================================");
-
-			System.out.print("\n"+"TIME\\DAY"+"\t");			
-
-			for(j=0;j<5;j++)
-			{
-				System.out.print(day[j]+"\t\t");				
-			}	
-			System.out.println("\n ");
-			for(j=0;j<7;j++)
-			{	
-				x=time[j]+1;
-				if(j==1||j==2||j==3)
-					System.out.print(time[j]+"-"+x+"\t");
-				else
-					System.out.print(time[j]+"-"+x+"\t\t");
-				for(k=0;k<5;k++)
-					if(!ttable[i][j][k].course.equals(""))
-						System.out.print(ttable[i][j][k].course+" "+ttable[i][j][k].ins+" "+ttable[i][j][k].room+"\t");
-				System.out.println(" ");
-			}
-			System.out.println(" ");
-		}
-		printtable print=new printtable(ttable,nostgrp,input);
-		print.print();
-	}
-}
 //main class
 public class schedule {
-	static chromosome[] classes;
+    
+        public  static Section[] sectionArray;
+       static Section[] secArray;
+    
+    
+	
 	static int noclass,nocourse,noins,nostgrp;
 	static double[] fit;
-	static inputdata input;
-	static void createpopulation()
-	{
-		int i,j,k,l,le,c,s,in,m=0,n;
-		boolean flag;
-		noclass=input.returnclassno();//no of classrooms
-		nocourse=input.returncourseno();//no of courses
-		nostgrp=input.returnstgrpno();//no of stgrps
-		noins=input.returninsno();//no of ins
-		Random r=new Random();
-		classes=new chromosome[10000];
-		for(k=0;k<10000;k++)
-		{
-			classes[k]=new chromosome(noclass);
-			for(i=0;i<noclass*5*7;i++)
-			{
-				m=0;
+	
+	
 
-				l=Integer.toBinaryString(nocourse).length();
-
-				c=r.nextInt(nocourse);//course generation
-
-				classes[k].period[i]=new gene(nocourse,nostgrp,noins);
-				String x=Integer.toBinaryString(c);
-				le=x.length();
-				if(l>le)
-				{
-					for(j=0;j<l-le;j++)
-						classes[k].period[i].g[m++]=0;
-				}
-				for(j=0;j<le;j++)
-				{
-					classes[k].period[i].g[m++]=(x.charAt(j)-'0');
-				}
-				n=m;
-
-				//student group generation
-				flag=false;
-				while(!flag)
-				{
-					s=r.nextInt(nostgrp);
-					for(j=0;j<input.course[c].nostgrp;j++)
-					{
-						if(input.course[c].stgrp[j].equals(input.stgrp[s].code))
-						{
-							m=n;
-							l=Integer.toBinaryString(nostgrp).length();
-							x=Integer.toBinaryString(s);
-							le=x.length();
-							if(l>le)
-							{
-								for(j=0;j<l-le;j++)
-									classes[k].period[i].g[m++]=0;
-							}
-							for(j=0;j<le;j++)
-							{
-								classes[k].period[i].g[m++]=x.charAt(j)-'0';
-							}
-							flag=true;
-							break;
-						}
-					}
-				}	
-				n=m;	
-				//instructor generation
-				flag=false;
-				while(!flag)
-				{
-					in=r.nextInt(noins);
-					for(j=0;j<input.course[c].noins;j++)
-					{
-						if(input.course[c].ins[j].equals(input.ins[in].code))
-						{
-							m=n;
-							l=Integer.toBinaryString(noins).length();
-							x=Integer.toBinaryString(in);
-							le=x.length();
-							if(l>le)
-							{
-								for(j=0;j<l-le;j++)
-									classes[k].period[i].g[m++]=0;
-							}
-							for(j=0;j<le;j++)
-							{
-								classes[k].period[i].g[m++]=(x.charAt(j)-'0');
-							}
-							flag=true;
-							break;
-						}
-					}
-				}
-
-				//chromosome initialization finished
-			}
-		}
-		//chromosome initial population created
-	}
-	static void fitness(int size)
-	{
-		fit=new double[size];
-		int i;
-		for(i=0;i<size;i++)
-		{
-			fit[i]=classes[i].fitness(input,noclass,nocourse,nostgrp,noins);
-		}
-	}
-	static int branchandbound(int size)
-	{
-		int i,flag,l,j,k=0;
-		double small=fit[0],high=fit[0];
-		double[][] value=new double[1500][2];
-		for(i=1000;i>=8;i/=5)
-		{
-			k=0;
-			for(j=0;j<size;j++)
-			{
-				if((j%i==0)&&(j!=0))
-				{
-					value[k][0]=small;
-					value[k][1]=high;
-					small=fit[j];
-					high=fit[j];
-					k++;
-					continue;
-				}
-				if(small>fit[j])
-					small=fit[j];
-				if(high<fit[j])
-					high=fit[j];
-			}
-			for(j=0;j<k;j++)
-			{
-				flag=0;
-				for(l=0;l<k;l++)
-				{
-					if(l==j)
-						continue;
-					if(value[j][1]<value[l][0])
-					{
-						flag=1;
-						break;
-					}
-				}
-				if(flag==1)
-				{
-					for(l=(j*i);l<size-i;l++)
-						classes[l]=classes[l+i];
-					size=size-i;
-				}
-			}
-		}
-		return(size);
-	}
-
-	//parent selection for crossover
-	static int[] select(int size)
-	{
-		int[] select=new int[2];
-		int[] rwheel=new int[100000];
-		int i,j,k=0,percent;
-		double fitsum=0;
-		for(i=0;i<size;i++)
-		{
-			fitsum=fitsum+fit[i];
-		}
-		for(i=0;i<size;i++)
-		{
-			percent=(int)((((double)fit[i])/fitsum)*100000);
-			for(j=k;j<k+percent;j++)
-				rwheel[j]=i;
-			k=k+percent;
-		}
-		Random r=new Random();
-		//first parent
-		select[0]=rwheel[r.nextInt(100000)];
-		//second parent
-		select[1]=rwheel[r.nextInt(100000)];
-
-		return(select);
-	}
-	static void anomalyson(chromosome son1,int len_course,int len_stgrp,int len_ins,int row1)
-	{
-		String bin="";
-		boolean flag;
-		String x="";
-		int n,j,i;
-		for(i=0;i<len_course;i++)
-			bin=bin+son1.period[row1].g[i];
-		n=Integer.valueOf(bin,2);
-		Random r=new Random();
-		int c,s,in,m,le;
-		//check for invalid course code
-		if(n>=nocourse)
-		{
-			c=r.nextInt(nocourse);//course generation
-			x=Integer.toBinaryString(c);
-			le=x.length();
-			m=0;
-			if(len_course>le)
-			{
-				for(j=0;j<len_course-le;j++)
-					son1.period[row1].g[m++]=0;
-			}
-			for(j=0;j<le;j++)
-			{
-				son1.period[row1].g[m++]=(x.charAt(j)-'0');
-			}
-
-			//student group generation
-			flag=false;
-			while(!flag)
-			{
-				s=r.nextInt(nostgrp);
-				for(j=0;j<input.course[c].nostgrp;j++)
-				{
-					if(input.course[c].stgrp[j].equals(input.stgrp[s].code))
-					{
-						m=len_course;
-						x=Integer.toBinaryString(s);
-						le=x.length();
-						if(len_stgrp>le)
-						{
-							for(j=0;j<len_stgrp-le;j++)
-								son1.period[row1].g[m++]=0;
-						}
-						for(j=0;j<le;j++)
-						{
-							son1.period[row1].g[m++]=x.charAt(j)-'0';
-						}
-						flag=true;
-						break;
-					}
-				}
-			}
-
-			//instructor generation
-			flag=false;
-			while(!flag)
-			{
-				in=r.nextInt(noins);
-				for(j=0;j<input.course[c].noins;j++)
-				{
-					if(input.course[c].ins[j].equals(input.ins[in].code))
-					{
-						m=len_course+len_stgrp;
-						x=Integer.toBinaryString(in);
-						le=x.length();
-						if(len_ins>le)
-						{
-							for(j=0;j<len_ins-le;j++)
-								son1.period[row1].g[m++]=0;
-						}
-						for(j=0;j<le;j++)
-						{
-							son1.period[row1].g[m++]=(x.charAt(j)-'0');
-						}
-						flag=true;
-						break;
-					}
-				}
-			}
-		}
-		else
-		{
-			bin="";
-			for(i=len_course;i<len_course+len_stgrp;i++)
-				bin=bin+son1.period[row1].g[i];
-			c=n;
-			n=Integer.valueOf(bin,2);
-			//check for valid student group and if invalis generate a random student group for the course 
-			if(n>=nostgrp)
-			{
-				flag=false;
-				while(!flag)
-				{
-					s=r.nextInt(nostgrp);
-
-					for(j=0;j<input.course[c].nostgrp;j++)
-					{
-						if(input.course[c].stgrp[j].equals(input.stgrp[s].code))
-						{
-							m=len_course;
-							x=Integer.toBinaryString(s);
-							le=x.length();
-							if(len_stgrp>le)
-							{
-								for(j=0;j<len_stgrp-le;j++)
-								{
-									son1.period[row1].g[m++]=0;
-								}       					
-							}
-							for(j=0;j<le;j++)
-							{
-								son1.period[row1].g[m++]=x.charAt(j)-'0';
-							}
-							flag=true;
-							break;
-						}
-					}
-				}	
-			}
-
-			bin="";
-			for(i=len_course+len_stgrp;i<len_course+len_stgrp+len_ins;i++)
-			{	
-				bin=bin+son1.period[row1].g[i];
-			} 
-			n=Integer.valueOf(bin,2);
-
-			//check for valid instructor and if invalid generate a random ins code for the course
-			if(n>=noins)
-			{
-				flag=false;
-				while(!flag)
-				{
-					in=r.nextInt(noins);
-					for(j=0;j<input.course[c].noins;j++)
-					{
-						if(input.course[c].ins[j].equals(input.ins[in].code))
-						{
-							m=len_course+len_stgrp;
-							x=Integer.toBinaryString(in);
-							le=x.length();
-							if(len_ins>le)
-							{
-								for(j=0;j<len_ins-le;j++)
-								{
-									son1.period[row1].g[m++]=0;
-								}        					
-							}
-							for(j=0;j<le;j++)
-							{
-								son1.period[row1].g[m++]=(x.charAt(j)-'0');
-							}
-							flag=true;
-							break;
-						}
-					}
-				}	
-			}	
-		}
-	}
-	//single point crossover
-	static void crossover(int[] parent,chromosome son1,chromosome son2)
-	{
-
-		Random n1=new Random();
-		int r1,row1,col1,i,j;
-		int len_course=Integer.toBinaryString(nocourse).length();
-		int len_stgrp=Integer.toBinaryString(nostgrp).length();
-		int len_ins=Integer.toBinaryString(noins).length();
-		int len_gene=len_course+len_stgrp+len_ins;
-		r1=n1.nextInt(len_gene*noclass*35);
-		n1.nextInt((len_gene)*noclass*35);
-		row1=r1/(len_gene);
-		col1=r1%len_gene;
-
-		//single point crossover
-		for(i=0;i<row1;i++)
-		{
-			son1.period[i]=new gene(nocourse,nostgrp,noins);
-			son2.period[i]=new gene(nocourse,nostgrp,noins);
-			for(j=0;j<len_gene;j++)
-			{
-				son1.period[i].g[j]=classes[parent[1]].period[i].g[j];
-				son2.period[i].g[j]=classes[parent[0]].period[i].g[j];
-			}
-		}
-		for(j=0;j<col1;j++)
-		{
-			son1.period[row1]=new gene(nocourse,nostgrp,noins);
-			son2.period[row1]=new gene(nocourse,nostgrp,noins);
-			son1.period[row1].g[j]=classes[parent[1]].period[row1].g[j];
-			son2.period[row1].g[j]=classes[parent[0]].period[row1].g[j];
-		}
-		for(j=col1;j<len_gene;j++)
-		{
-			son1.period[row1]=new gene(nocourse,nostgrp,noins);
-			son2.period[row1]=new gene(nocourse,nostgrp,noins);
-			son1.period[row1].g[j]=classes[parent[0]].period[row1].g[j];
-			son2.period[row1].g[j]=classes[parent[1]].period[row1].g[j];
-		}
-
-		for(i=row1+1;i<noclass*35;i++)
-		{
-			son1.period[i]=new gene(nocourse,nostgrp,noins);
-			son2.period[i]=new gene(nocourse,nostgrp,noins);
-
-			for(j=0;j<len_gene;j++)
-			{
-				son1.period[i].g[j]=classes[parent[0]].period[i].g[j];
-				son2.period[i].g[j]=classes[parent[1]].period[i].g[j];
-			}
-		}
-
-
-
-		//check for anomalies
-		anomalyson(son1,len_course,len_stgrp,len_ins,row1);
-				anomalyson(son2,len_course,len_stgrp,len_ins,row1);
-	}
-
-	//mutation method
-	static void mutation(chromosome son)
-	{
-		int i;
-		int len_course=Integer.toBinaryString(nocourse).length();
-		int len_stgrp=Integer.toBinaryString(nostgrp).length();
-		int len_ins=Integer.toBinaryString(noins).length();
-		int len_gene=len_course+len_stgrp+len_ins;
-		for(i=0;i<noclass*35;i++)
-		{
-			Random r=new Random();
-			int pos=r.nextInt(len_gene*35*noclass);
-			int row=pos/len_gene;
-			int col=pos%len_gene;
-			if(son.period[row].g[col]==0)
-				son.period[row].g[col]=1;
-			if(son.period[row].g[col]==1)
-				son.period[row].g[col]=0;
-			anomalyson(son,len_course,len_stgrp,len_ins,row);
-		}
-	} 
-
-
+	
+	
 	public static void main(String[] args)
 	{
-		Date date=new Date();
-		long time1=date.getTime();
-
-		int i=0,j,k=0,l,count=0,g=0;
-		chromosome temp;
-		double tempfitt []=new double [5];
-		double tempfit,maxfit=0;
-		chromosome[] newgen=new chromosome[10000];
-		chromosome[] sonparent=new chromosome[6];               //stores current parents,crossover sons and mutation sons
-		double[] fsonparent=new double[6];                      //stores corresponding fitness values
-		double fit1,fit2,fitp1,fitp2;
-		int size=10000;						//size of population
-		int[] parent=new int[2];
-		input=new inputdata();
-		input.takeinput();
-		chromosome maxchrome=new chromosome(noclass);
-		chromosome tempchrome=new chromosome(noclass);
-
-		//chromosome population creation/initialization
-		createpopulation();
-		int len_course=Integer.toBinaryString(nocourse).length();
-		int len_stgrp=Integer.toBinaryString(nostgrp).length();
-		int len_ins=Integer.toBinaryString(noins).length();
-		//fitness initialization
-		fitness(size);
-		for(l=0;l<3;l++){
-
-			//branch and bound to reduce the size and improve the quality of population set
-			size=branchandbound(size);
-
-			//fitness calculation
-			fitness(size);
-
-			//while(maxfit<2.1){
-
-			for(i=0;i<size/2;i++)
-			{
-				//parent selection for crossover operation
-				newgen[2*i]=new chromosome(noclass);
-				newgen[2*i+1]=new chromosome(noclass);
-
-				parent=select(size);
-				fitp1=fit[parent[0]];
-				fitp2=fit[parent[1]];
-
-				sonparent[0]=classes[parent[0]];
-				sonparent[1]=classes[parent[1]];
-				fsonparent[0]=fitp1;
-				fsonparent[1]=fitp2;
-
-				//crossover
-				chromosome son1=new chromosome(noclass);
-				chromosome son2=new chromosome(noclass);
-				crossover(parent,son1,son2);
-				fit1=son1.fitness(input,noclass,nocourse,nostgrp,noins);
-				fit2=son2.fitness(input,noclass,nocourse,nostgrp,noins);
-
-				sonparent[2]=son1;
-				sonparent[3]=son2;
-				fsonparent[2]=fit1;
-				fsonparent[3]=fit2;
-
-				fit1=son1.fitness(input,noclass,nocourse,nostgrp,noins);
-				fit2=son2.fitness(input,noclass,nocourse,nostgrp,noins);
-
-				sonparent[4]=son1;
-				sonparent[5]=son2;
-				fsonparent[4]=fit1;
-				fsonparent[5]=fit2;
-
-				//sort sonparent on basis of fsonparent
-				for(j=1;j<6;j++)
-				{
-					temp=sonparent[j];
-					tempfit=fsonparent[j];
-					for(k=j-1;k>=0;k--)
-					{
-						if(fsonparent[k]>tempfit)
-						{
-							sonparent[k+1]=sonparent[k];
-							fsonparent[k+1]=fsonparent[k];
+                String semesterSelected=generateschedule.semesterSelected;
+                String sectionFillperc=generateschedule.sectionFillperc;
+                String sectionOveragePerc=generateschedule.sectionOveragePerc;
+                String iterations=generateschedule.iterations;
+                
+                String sem = semesterSelected.substring(semesterSelected.length()-2);
+				
+                HashMap<String, Integer> coursesOffered= new HashMap();
+                HashMap<String, String[]> coursesFaculty= new HashMap();
+                HashMap<String, String> facultyAvailable= new HashMap();
+                HashMap<String, Integer> facultyLoad= new HashMap(); 
+				
+		ArrayList<Course> courseList=CourseRegister.courses;	
+                ArrayList<Faculty> facultyList=FacultyRegister.faculties;
+                ArrayList<Student> studentList=StudentRegister.students;
+                ArrayList<Degree> degreeList=DegreeRegister.degrees;
+                ArrayList<DegreePlanReqs> degreePlanList=DegreePlanReqsRegister.degreePlanReqs;
+                
+				if("FA".equalsIgnoreCase(sem)){
+					
+					for(Course course:courseList){
+						if("Y".equalsIgnoreCase(course.getOfferedFA())){
+							coursesOffered.put(course.getCode(), 0);
+							coursesFaculty.put(course.getCode(), course.getTeachers().split(","));
 						}
-						else 
-							break;
 					}
-					sonparent[k+1]=temp;
-					fsonparent[k+1]=tempfit;
+					System.out.println(courseList.size());
+					for(Faculty faculty:facultyList){
+						if(!"0".equalsIgnoreCase(faculty.getMaxLoadFA())){
+							facultyAvailable.put(faculty.getLname(), faculty.getDays());
+							facultyLoad.put(faculty.getLname(), Integer.parseInt(faculty.getMaxLoadFA()));
+						}
+					}
+				} else if ("SU".equalsIgnoreCase(sem)){
+					for(Course course:courseList){
+						if("Y".equalsIgnoreCase(course.getOfferedSU())){
+							coursesOffered.put(course.getCode(), 0);
+							coursesFaculty.put(course.getCode(), course.getTeachers().split(","));
+						}
+					}
+					for(Faculty faculty:facultyList){
+						if(!"0".equalsIgnoreCase(faculty.getMaxLoadSU())){
+							facultyAvailable.put(faculty.getLname(), faculty.getDays());
+							facultyLoad.put(faculty.getLname(), Integer.parseInt(faculty.getMaxLoadSU()));
+						}
+					}
+				} else if ("SP".equalsIgnoreCase(sem)){
+					for(Course course:courseList){
+						if("Y".equalsIgnoreCase(course.getOfferedSP())){
+							coursesOffered.put(course.getCode(), 0);
+							coursesFaculty.put(course.getCode(), course.getTeachers().split(","));
+						}
+					}
+					for(Faculty faculty:facultyList){
+						if(!"0".equalsIgnoreCase(faculty.getMaxLoadSP())){
+							facultyAvailable.put(faculty.getLname(), faculty.getDays());
+							facultyLoad.put(faculty.getLname(), Integer.parseInt(faculty.getMaxLoadSP()));
+						}
+					}
 				}
-				newgen[2*i]=sonparent[5];
-				newgen[2*i+1]=sonparent[4];
-
-			}
-
-			for(i=0;i<size;i++)
-			{
-
-				classes[i]=newgen[i];
-				fit[i]=newgen[i].fitness(input,noclass,nocourse,nostgrp,noins);
-			}
-			tempfit=fit[0];
-			for(i=1;i<size;i++)
-				if(tempfit<fit[i])
-				{
-					tempfit=fit[i];
-					tempchrome=classes[i];
-					//x1=i;
+				
+				Set SOK3 = coursesFaculty.keySet();
+				Iterator iterator3 = SOK3.iterator();
+				HashMap<String, Integer> courseCountFaculty = new HashMap();
+				System.out.println("AVAILABLE COURSES FOR THE SEM "+semesterSelected+" ARE:courseFaculty");
+                                sectionArray=null;
+				while (iterator3.hasNext()){
+					String crs1 = (String) iterator3.next();
+					String[] facultyRequired = (String[]) coursesFaculty.get(crs1);
+					for(int i=0;i<facultyRequired.length;i++){
+						System.out.println("Course: "+crs1+"\tFaculty: "+facultyRequired[i]+"\t\tMaxLoad: "+facultyLoad.get(facultyRequired[i]));
+						int value = 0;
+						if(courseCountFaculty.get(crs1)!=null){
+							value = courseCountFaculty.get(crs1);;
+						}
+						courseCountFaculty.put(crs1, value+1);
+						
+						if(facultyLoad.get(facultyRequired[i])!=null){
+							if(sectionArray!=null){
+								Section[] secArray = new Section[sectionArray.length+1];
+								for(int j=0;j<sectionArray.length;j++){
+									secArray[j]=sectionArray[j];
+								}
+								Section sec = new Section();
+								sec.setSectionNumber(Integer.toString(secArray.length));
+								sec.setCourse(crs1);
+								sec.setFaculty(facultyRequired[i]);
+								sec.setDays(facultyAvailable.get(facultyRequired[i]));
+								sec.setSemester(semesterSelected);
+								
+								secArray[sectionArray.length] = sec;
+								sectionArray = secArray;
+							}else{
+								Section sec = new Section();
+								sec.setSectionNumber("1");
+								sec.setCourse(crs1);
+								sec.setFaculty(facultyRequired[i]);
+								sec.setDays(facultyAvailable.get(facultyRequired[i]));
+								sec.setSemester(semesterSelected);
+								
+								sectionArray = new Section[1];
+								sectionArray[0] = sec;
+							}
+						}						
+					}
 				}
-			if(count%5==0){tempfitt[count%5]=tempfit;}
-			if(count%5==1){tempfitt[count%5]=tempfit;}
-			if(count%5==2){tempfitt[count%5]=tempfit;}
-			if(count%5==3){tempfitt[count%5]=tempfit;}
-			if(count%5==4){tempfitt[count%5]=tempfit;}
-			count++;
-			if(tempfitt[0]==tempfitt[1] && tempfitt[0]==tempfitt[2] && tempfitt[0]==tempfitt[3] && tempfitt[0]==tempfitt[4] && count>4)
-			{	
-				for(g=0;g<size;g++)
-					mutation(classes[g]);
+				
+				
+				System.out.println("COURSES WITH AVAILABLE FACULTY FOR THE SEM "+
+									semesterSelected+" ARE:sectionArray");
+				for(int j=0;j<sectionArray.length;j++){
+					System.out.println("Section: "+sectionArray[j].getSectionNumber()+
+							"\tCourse: "+sectionArray[j].getCourse()+
+							"\tFaculty: "+sectionArray[j].getFaculty()+
+							"\t\tDays: "+sectionArray[j].getDays());
+				}
+				GA(args, courseList, facultyList, studentList, degreeList, degreePlanList, sectionArray, 
+						sectionFillperc, facultyLoad, sectionOveragePerc, semesterSelected, iterations);
+				//dispose();
+				
+			
 			}
-			//System.out.println("MAX ="+tempfit);
-			if(maxfit<tempfit)
-			{
-				maxfit=tempfit;
-				maxchrome=tempchrome;
-			}
-			if(((maxfit<=3.0)&&(maxfit>=2.7))||(size<=1000))
-				break;
-			//System.out.println(maxfit);
+
+        
+        public static void GA(String[] args, ArrayList<Course> crsArr, ArrayList<Faculty> facArr, final ArrayList<Student> studArr, final ArrayList<Degree> degArr, final ArrayList<DegreePlanReqs> degPlanArr, 
+			final Section[] sectionArray, String minFillPercent, HashMap<String, Integer> facultyLoad, String maxOverage, String semester, String iterations) {
+		
+	Population pop = new Population(studArr.toArray(new Student[studArr.size()]), degArr.toArray(new Degree[degArr.size()]), 
+                                        degPlanArr.toArray(new DegreePlanReqs[degPlanArr.size()]), sectionArray, 
+                                        minFillPercent, facultyLoad, maxOverage, semester, iterations); 
+        Individual[] newPop = new Individual[Population.POP_SIZE];
+        Individual[] indiv = new Individual[2];
+
+       
+        // main loop
+        int count;
+        for (int iter = 0; iter < Population.MAX_ITER; iter++) {
+            count = 0;
+
+            // Elitism
+            for (int i = 0; i < Population.ELITISM_K; ++i) {
+                newPop[count] = pop.findBestIndividual();
+                count++;
+            }
+
+            // build new Population
+            while (count < Population.POP_SIZE) {
+                // Selection
+                indiv[0] = pop.rouletteWheelSelection();
+                indiv[1] = pop.rouletteWheelSelection();
+
+                // Crossover
+                if (Population.m_rand.nextDouble() < Population.CROSSOVER_RATE) {
+                    indiv = Population.onePoinCrossover(indiv[0], indiv[1]);
+                }
+
+                // Mutation
+                if (Population.m_rand.nextDouble() < Population.MUTATION_RATE) {
+                    indiv[0].mutate();
+                }
+                if (Population.m_rand.nextDouble() < Population.MUTATION_RATE) {
+                    indiv[1].mutate();
+                }
+
+                // add to new population
+                newPop[count] = indiv[0];
+                newPop[count + 1] = indiv[1];
+                count += 2;
+            }
+            pop.setPopulation(newPop);
+            //System.gc();
+            // reevaluate current population
+            pop.evaluate(studArr.toArray(new Student[studArr.size()]), degArr.toArray(new Degree[degArr.size()]),
+                           degPlanArr.toArray(new DegreePlanReqs[degPlanArr.size()]), 
+                                   sectionArray, minFillPercent, facultyLoad, maxOverage, semester);
+//            System.out.print(iter+"\tTotal Fitness = " + pop.totalFitness);
+//            System.out.println(" ; Best Fitness = "
+//                    + pop.findBestIndividual().getFitnessValue());
+        }
+
+        // best indiv
+        Individual bestIndiv = pop.findBestIndividual();
+        
+//        System.out.println("Best Individual Fitness = "
+//                    + bestIndiv.getFitnessValue());
+        
+        int[] bestGene = bestIndiv.getGenes();
+        schedule.secArray = sectionArray;
+        
+        HashMap<String, Integer> numberOfStudents = numberOfStudents(bestGene, studArr.toArray(new Student[studArr.size()]), degArr.toArray(new Degree[degArr.size()]),
+                           degPlanArr.toArray(new DegreePlanReqs[degPlanArr.size()]), sectionArray, minFillPercent, facultyLoad, maxOverage, semester);
+        
+        
+		
+        
+       System.out.println("\n\n SCHEDULE FOR THE SEMESTER "+semester+" SHALL HAVE FOLLOWING COURSES:");
+        for(int i=0;i<bestGene.length;i++){
+        	if(bestGene[i]==1){
+        		Section sec = sectionArray[i];
+        		System.out.println("Course: "+sec.getCourse()+"\tDays: "+sec.getDays()+"\tFaculty: "+sec.getFaculty()+"\tStudents: "+numberOfStudents.get(sec.getCourse()));
+        	}
+        }
+        
+        int countBestGene = 0;
+		for(int i=0;i<bestGene.length;i++){
+			countBestGene = countBestGene + bestGene[i];
 		}
-
-
-		System.out.println(maxfit);
-		timetable table1=new timetable(maxchrome,nostgrp,noclass,noins,nocourse,input);
-		table1.findtable();
-		date=new Date();
-		long time2=date.getTime();
-		System.out.println(time2-time1);
+		
+		Section[] secArray = new Section[countBestGene];
+		int j=0;
+		for(int i=0;i<sectionArray.length;i++){
+			if(bestGene[i]==1){
+				secArray[j] = sectionArray[i];
+				j++;
+			}
+		}
+		
+		int[][] sectionDayMapping = new int[secArray.length][4];
+		for (int i=0;i<secArray.length;i++){
+			if(secArray[i].getDays().contains("M")){
+				sectionDayMapping[i][0]=1;
+			}
+			if(secArray[i].getDays().contains("T")){
+				sectionDayMapping[i][1]=1;
+			}
+			if(secArray[i].getDays().contains("W")){
+				sectionDayMapping[i][2]=1;
+			}
+			if(secArray[i].getDays().contains("R")){
+				sectionDayMapping[i][3]=1;
+			}
+		}
+		
+		//System.out.println("sectionDayMapping");
+		for(int i=0;i<secArray.length;i++){
+			//System.out.print("\n");
+			for(int k=0;k<4;k++){
+				//System.out.print("\t"+sectionDayMapping[i][k]);
+			}
+		}
+		//System.out.print("\n");
+		
+		int[] sectionDayCount = new int[secArray.length];
+		for(int i=0;i<secArray.length;i++){
+			for(int k=0;k<4;k++){
+				//if(i==0)sectionDayCount[0]=sectionDayMapping[0][k];
+				sectionDayCount[i] = sectionDayCount[i]+sectionDayMapping[i][k];
+			}
+		}
+		
+		//System.out.println("sectionDayCount");
+		//System.out.print("\n");
+		for(int i=0;i<secArray.length;i++){
+			//System.out.print(sectionDayCount[i]+"  ");
+		}
+		//System.out.print("\n");
+		
+		int[] daySectionCount = new int[4];
+		
+		int[][] FinalSectionDayMapping = new int[secArray.length][4];
+		for(int i=0;i<sectionDayCount.length;i++){
+			if(sectionDayCount[i]==1){
+				for(int k=0;k<4;k++){
+					if(sectionDayMapping[i][k]==1){
+						FinalSectionDayMapping[i][k]=1;
+						daySectionCount[k] = daySectionCount[k] + 1;
+					}
+				}
+				
+			}
+		}
+		for(int i=0;i<sectionDayCount.length;i++){
+			if(sectionDayCount[i]==2){
+				int large = 999999;
+				int min = 0;
+				for(int k=0;k<4;k++){
+					if(sectionDayMapping[i][k]==1){
+						if(daySectionCount[k]<large){
+							min = k;
+							large = daySectionCount[k];
+						}
+					}
+				}
+				FinalSectionDayMapping[i][min]=1;
+				daySectionCount[min] = daySectionCount[min] + 1;
+				
+			}
+		}
+		for(int i=0;i<sectionDayCount.length;i++){
+			if(sectionDayCount[i]==3){
+				int large = 999999;
+				int min = 0;
+				for(int k=0;k<4;k++){
+					if(sectionDayMapping[i][k]==1){
+						if(daySectionCount[k]<large){
+							min = k;
+							large = daySectionCount[k];
+						}
+					}
+				}
+				FinalSectionDayMapping[i][min]=1;
+				daySectionCount[min] = daySectionCount[min] + 1;
+				
+			}
+		}
+		for(int i=0;i<sectionDayCount.length;i++){
+			if(sectionDayCount[i]==4){
+				int large = 999999;
+				int min = 0;
+				for(int k=0;k<4;k++){
+					if(sectionDayMapping[i][k]==1){
+						if(daySectionCount[k]<large){
+							min = k;
+							large = daySectionCount[k];
+						}
+					}
+				}
+				FinalSectionDayMapping[i][min]=1;
+				daySectionCount[min] = daySectionCount[min] + 1;
+				
+			}
+		}
+		
+		
+		for(int i=0;i<secArray.length;i++){
+			for(int k=0;k<4;k++){
+				if(FinalSectionDayMapping[i][k]==1){
+					if(k==0)secArray[i].setDays("M");
+					else if(k==1)secArray[i].setDays("T");
+					else if(k==2)secArray[i].setDays("W");
+					else if(k==3)secArray[i].setDays("R");
+				}
+			}
+		}
+		
+		//System.out.print("\n");
+		//System.out.print("daySectionCount");
+		//System.out.print("\n");
+		for(int i=0;i<4;i++){
+			//System.out.print(daySectionCount[i]+"  ");
+		}
+		//System.out.print("\n");
+		
+		//System.out.print("secArray");
+		//System.out.print("\n");
+		for(int i=0;i<secArray.length;i++){
+			//System.out.println(secArray[i].getDays());
+		}
+		//System.out.print("\n");
+		
+        new printtable(args, crsArr.toArray(new Course[crsArr.size()]), facArr.toArray(new Faculty[facArr.size()]),
+                                            studArr.toArray(new Student[studArr.size()]), degArr.toArray(new Degree[degArr.size()]), 
+                                            degPlanArr.toArray(new DegreePlanReqs[degPlanArr.size()]), minFillPercent, 
+                                            facultyLoad, maxOverage, semester,secArray, numberOfStudents, bestGene).printData();
+        
+//		new printtable(args, crsArr, facArr, studArr, degArr, degPlanArr, minFillPercent, 
+//        		facultyLoad, maxOverage, semester,secArray, numberOfStudents, bestGene);
+		
+        //return sectionArray;
+        		
 	}
+	
+	
+	public static HashMap<String, Integer> numberOfStudents(int[] genes, Student[] studArr, Degree[] degArr, DegreePlanReqs[] degPlanArr, 
+			Section[] secArray, String minFillPercent, HashMap<String, Integer> facultyLoad, String maxOverage, String semester){
+        
+    	int objectiveValue = 0;
+    	HashMap<String, Integer> courseStudent = new HashMap();
+     	
+    	for(int i=0;i<studArr.length;i++){ 
+    		Student student = studArr[i];
+    		String degreeCode = student.getDegreePlan(); 
+    		String[] coursesApplied = student.getCourseNum(); 
+    		String[] gradesReceived = student.getGrade();
+    		DegreePlanReqs degreePlan = new DegreePlanReqs(); 
+    		for(int j=0;j<degPlanArr.length;j++){
+    			if(degPlanArr[j].getDegreeCode().equalsIgnoreCase(degreeCode)){ 
+    				degreePlan = degPlanArr[j];
+    				String[] coursesToApplyStandard = degreePlan.getCourses().replaceAll("^\"|\"$", "").split(","); 
+    				String[] coursesToApplyStud = coursesToApplyStandard; 
+    				int creditsToEarn = Integer.parseInt(degreePlan.getHours()); 
+    				
+    				if(coursesApplied != null){
+    					for(int k=0;k<coursesApplied.length;k++){ 
+        					for(int l=0;l<coursesToApplyStandard.length;l++){ 
+        						if(coursesApplied[k].equals(coursesToApplyStandard[l])){ 
+        							if(creditsToEarn > 0){ 
+        								if("A".equalsIgnoreCase(gradesReceived[k])
+        										|| "B".equalsIgnoreCase(gradesReceived[k])
+        										|| "C".equalsIgnoreCase(gradesReceived[k])
+        										|| "D".equalsIgnoreCase(gradesReceived[k])
+        										|| "CIP".equalsIgnoreCase(gradesReceived[k])){
+        									
+        									ArrayUtils.removeElement(coursesToApplyStud, coursesToApplyStandard[l]);
+        									creditsToEarn = creditsToEarn - 3;
+        								}
+        							} else { 
+        								coursesToApplyStud = new String[0];
+        							}
+        						}
+        					}
+        				}
+    				}
+   				for(int m=0;m<genes.length;m++){ 
+    					if(genes[m] == 1){
+    						Section section = secArray[m];
+    						if(ArrayUtils.contains(coursesToApplyStud, section.getCourse())){ 
+    							objectiveValue++;
+    							if(courseStudent.containsKey(section.getCourse())){
+    								int number = courseStudent.get(section.getCourse());
+    								courseStudent.put(section.getCourse(), number+1);
+    							}else{
+    								courseStudent.put(section.getCourse(), 1);
+    							}
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	for(int i=1;i<degArr.length;i++){
+    		
+    		String degreeCode = degArr[i].getCode();
+    		int numberOfStudents = Integer.parseInt(degArr[i].getForecast());
+    		
+    		DegreePlanReqs degreePlan = new DegreePlanReqs(null,null,null,null,null);
+    		for(int j=0;j<degPlanArr.length;j++){
+    			if(degPlanArr[j].getDegreeCode().equalsIgnoreCase(degreeCode)){ 
+    				degreePlan = degPlanArr[j];
+    				String[] coursesToApplyStud  = degreePlan.getCourses().replaceAll("^\"|\"$", "").split(","); // Standard List of Courses which the student needs to Pass.
+    				
+    				for(int m=0;m<genes.length;m++){ 
+    					if(genes[m] == 1){ 
+    						Section section = secArray[m];
+    						if(ArrayUtils.contains(coursesToApplyStud, section.getCourse())){
+    							objectiveValue = objectiveValue+numberOfStudents;
+    							if(courseStudent.containsKey(section.getCourse())){
+    								int number = courseStudent.get(section.getCourse());
+    								courseStudent.put(section.getCourse(), number+numberOfStudents);
+    							}else{
+    								courseStudent.put(section.getCourse(), numberOfStudents);
+    							}
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	return courseStudent;
+    	
+    }
+
+
+}
+
+class Individual {
+	
+	public static int SIZE = 10000;
+    private int[] genes = new int[SIZE];
+    private double fitnessValue;
+    private HashMap<String, Integer> numberOfStudent;
+    
+    
+	public HashMap<String, Integer> getNumberOfStudent() {
+		return numberOfStudent;
+	}
+
+	public void setNumberOfStudent(HashMap<String, Integer> numberOfStudent) {
+		this.numberOfStudent = numberOfStudent;
+	}
+
+	public int[] getGenes() {
+		return genes;
+	}
+
+	public void setGenes(int[] genes) {
+		this.genes = genes;
+	}
+
+	public Individual(Section[] secArray) {
+        Individual.SIZE = secArray.length;
+        this.setSIZE(secArray.length);
+    }
+    
+    public Individual() {}
+    
+    public static int getSIZE() {
+        return SIZE;
+    }
+
+    public static void setSIZE(int SIZE) {
+        Individual.SIZE = SIZE;
+    }
+    
+    public double getFitnessValue() {
+        return fitnessValue;
+    }
+
+    public void setFitnessValue(double fitnessValue) {
+        this.fitnessValue = fitnessValue;
+    }
+
+    public int getGene(int index) {
+        return genes[index];
+    }
+
+    public void setGene(int index, int gene) {
+        this.genes[index] = gene;
+    }
+
+    public void randGenes() {
+        Random rand = new Random();
+        for(int i=0; i<SIZE; ++i) {
+            this.setGene(i, rand.nextInt(2));
+        }
+    }
+
+    public void mutate() {
+        Random rand = new Random();
+        int index = rand.nextInt(SIZE);
+        this.setGene(index, 1-this.getGene(index));    // flip
+    }
+
+    public double evaluate(Student[] studArr, Degree[] degArr, DegreePlanReqs[] degPlanArr, 
+			Section[] secArray, String minFillPercent, HashMap<String, Integer> facultyLoad, String maxOverage, String semester) {
+        this.setFitnessValue(objectiveFunction(this.genes, studArr, degArr, degPlanArr, secArray, minFillPercent, facultyLoad, maxOverage, semester));
+        return this.fitnessValue;
+    }
+    
+    public double objectiveFunction(int[] genes, Student[] studArr, Degree[] degArr, DegreePlanReqs[] degPlanArr, 
+			Section[] secArray, String minFillPercent, HashMap<String, Integer> facultyLoad, String maxOverage, String semester){
+        
+    	int objectiveValue = 0;
+    	int facultyLoadExceedPenalty = 0;
+    	int numberOfCoursesPenalty = 0;
+    	int maxStudentCountPenalty = 0;
+    	HashMap<String, Integer> courseStudent = new HashMap();
+    	
+    	
+    	for(int i=0;i<studArr.length;i++){ 
+    		Student student = studArr[i];
+    		String degreeCode = student.getDegreePlan(); 
+    		String[] coursesApplied = student.getCourseNum(); 
+    		String[] gradesReceived = student.getGrade(); 
+    		
+    		DegreePlanReqs degreePlan = new DegreePlanReqs(); // 
+    		for(int j=0;j<degPlanArr.length;j++){
+    			if(degPlanArr[j].getDegreeCode().equalsIgnoreCase(degreeCode)){ 
+    				degreePlan = degPlanArr[j];
+    				String[] coursesToApplyStandard = degreePlan.getCourses().replaceAll("^\"|\"$", "").split(",");
+    				String[] coursesToApplyStud = coursesToApplyStandard;
+    				int creditsToEarn = Integer.parseInt(degreePlan.getHours()); 
+    				
+    				if(coursesApplied != null){
+    					for(int k=0;k<coursesApplied.length;k++){ 
+        					for(int l=0;l<coursesToApplyStandard.length;l++){ 
+        						if(coursesApplied[k].equals(coursesToApplyStandard[l])){ 
+        							if(creditsToEarn > 0){ 
+        								if("A".equalsIgnoreCase(gradesReceived[k])
+        										|| "B".equalsIgnoreCase(gradesReceived[k])
+        										|| "C".equalsIgnoreCase(gradesReceived[k])
+        										|| "D".equalsIgnoreCase(gradesReceived[k])
+        										|| "CIP".equalsIgnoreCase(gradesReceived[k])){
+        									
+        									ArrayUtils.removeElement(coursesToApplyStud, coursesToApplyStandard[l]);
+        									creditsToEarn = creditsToEarn - 3;
+        								}
+        							} else { 
+        								coursesToApplyStud = new String[0];
+        							}
+        						}
+        					}
+        				}
+    				}
+    				
+    				
+    				for(int m=0;m<genes.length;m++){ 
+    					if(genes[m] == 1){ 
+    						Section section = secArray[m];
+    						if(ArrayUtils.contains(coursesToApplyStud, section.getCourse())){ 
+    							objectiveValue++;
+    							if(courseStudent.containsKey(section.getCourse())){
+    								int number = courseStudent.get(section.getCourse());
+    								courseStudent.put(section.getCourse(), number+1);
+    							}else{
+    								courseStudent.put(section.getCourse(), 1);
+    							}
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	// Now for the students who are newly expected to be joining the university.
+    	for(int i=1;i<degArr.length;i++){
+    		
+    		String degreeCode = degArr[i].getCode();
+    		int numberOfStudents = Integer.parseInt(degArr[i].getForecast());
+    		
+    		DegreePlanReqs degreePlan = new DegreePlanReqs(null,null,null,null,null);
+    		for(int j=0;j<degPlanArr.length;j++){
+    			if(degPlanArr[j].getDegreeCode().equalsIgnoreCase(degreeCode)){ // Checking which degree plan student belongs to
+    				degreePlan = degPlanArr[j];
+    				String[] coursesToApplyStud  = degreePlan.getCourses().replaceAll("^\"|\"$", "").split(","); // Standard List of Courses which the student needs to Pass.
+    			
+    				for(int m=0;m<genes.length;m++){ 
+    					if(genes[m] == 1){ 
+    						Section section = secArray[m];
+    						if(ArrayUtils.contains(coursesToApplyStud, section.getCourse())){
+    							objectiveValue = objectiveValue+numberOfStudents;
+    							if(courseStudent.containsKey(section.getCourse())){
+    								int number = courseStudent.get(section.getCourse());
+    								courseStudent.put(section.getCourse(), number+numberOfStudents);
+    							}else{
+    								courseStudent.put(section.getCourse(), numberOfStudents);
+    							}
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+    
+    	
+    	int count = 0;
+    	for(int i=0;i<genes.length;i++){
+    		if(genes[i]==1)count++;
+    	}
+    	numberOfCoursesPenalty = count * ((Integer.parseInt(minFillPercent)*25)/100);
+    	
+    	// Now adding penalty for unsatisfied Faculty.
+    	Set SOK = facultyLoad.keySet();
+		Iterator iterator = SOK.iterator();
+		while(iterator.hasNext()){
+			String fac = (String) iterator.next();
+			int maxLoad = (int) facultyLoad.get(fac);
+			int load = 0;
+			
+			for(int j=0;j<genes.length;j++){
+    			if(genes[j]==1){
+    				Section sec = secArray[j];
+    				if(fac.equalsIgnoreCase(sec.getFaculty())){
+    					load = load+3;
+    				}
+    					
+    			}
+    		}
+    		
+    		if(load>maxLoad){
+    			//System.out.println(facultyLoadExceedPenalty);
+    			facultyLoadExceedPenalty = facultyLoadExceedPenalty + 10000000;
+    		}
+		}
+		
+    	
+    	/*for(int i=1;i<facArr.length;i++){
+    		Faculty fac = facArr[i];
+    		int load = 0;
+    		System.out.println(facultyLoad);
+    		System.out.println(facultyLoad.size());
+    		System.out.println(fac.getLastname());
+    		int maxLoad = facultyLoad.get(fac.getLastname());
+    		
+    	}*/
+		
+		Set SOK1 = courseStudent.keySet();
+		Iterator iterator1 = SOK1.iterator();
+		while(iterator1.hasNext()){
+			String course = (String) iterator1.next();
+			int cnt = (int) courseStudent.get(course);
+
+			if(cnt>25*(1+(Integer.parseInt(maxOverage)/100))){
+				maxStudentCountPenalty = cnt * 10;
+			}
+		}
+		
+    	int fitness = (objectiveValue - numberOfCoursesPenalty - facultyLoadExceedPenalty-maxStudentCountPenalty);
+    	
+    	if(fitness<0)return 0;
+    	else return fitness;
+    }
+    
+}
+
+class Population {
+	
+	public final static int ELITISM_K = 5;
+	public final static int POP_SIZE = 100 + ELITISM_K;  
+	public static int MAX_ITER = 10;        
+	public final static double MUTATION_RATE = 0.1;     
+	public final static double CROSSOVER_RATE = 0.8;     
+
+    public static Random m_rand = new Random();  
+    private Individual[] m_population;
+    public double totalFitness;
+
+    public Population(Student[] studArr, Degree[] degArr, DegreePlanReqs[] degPlanArr, 
+			Section[] secArray, String minFillPercent, HashMap<String, Integer> facultyLoad, String maxOverage, String semester, String iterations) {
+        m_population = new Individual[POP_SIZE];
+        MAX_ITER = Integer.parseInt(iterations);
+
+        for (int i = 0; i < POP_SIZE; i++) {
+            m_population[i] = new Individual(secArray);
+            m_population[i].randGenes();
+        }
+
+        // evaluate current population
+        this.evaluate(studArr, degArr, degPlanArr, secArray, minFillPercent, facultyLoad, maxOverage, semester);
+    }
+
+    public void setPopulation(Individual[] newPop) {
+        System.arraycopy(newPop, 0, this.m_population, 0, POP_SIZE); // Replaces the newPop with the existing population
+    }
+
+    public Individual[] getPopulation() {
+        return this.m_population;
+    }
+
+    public double evaluate(Student[] studArr, Degree[] degArr, DegreePlanReqs[] degPlanArr, 
+			Section[] secArray, String minFillPercent, HashMap<String, Integer> facultyLoad, String maxOverage, String semester) {
+        this.totalFitness = 0.0;
+        for (int i = 0; i < POP_SIZE; i++) {
+            this.totalFitness += m_population[i].evaluate(studArr, degArr, degPlanArr, secArray, minFillPercent, facultyLoad, maxOverage, semester);
+        }
+        return this.totalFitness;
+    }
+
+    public Individual rouletteWheelSelection() {
+        double randNum = m_rand.nextDouble() * this.totalFitness;
+        int idx;
+        for (idx=0; idx<POP_SIZE && randNum>0; idx++) {
+            randNum -= m_population[idx].getFitnessValue();
+        }
+        return m_population[idx-1];
+    }
+
+    public Individual findBestIndividual() {
+        int idxMax = 0, idxMin = 0;
+        double currentMax = 0.0;
+        double currentMin = 1.0;
+        double currentVal;
+
+        for (int idx=0; idx<POP_SIZE; ++idx) {
+            currentVal = m_population[idx].getFitnessValue();
+            if (currentMax < currentMin) {
+                currentMax = currentMin = currentVal;
+                idxMax = idxMin = idx;
+            }
+            if (currentVal > currentMax) {
+                currentMax = currentVal;
+                idxMax = idx;
+            }
+            if (currentVal < currentMin) {
+                currentMin = currentVal;
+                idxMin = idx;
+            }
+        }
+
+      
+        return m_population[idxMax];       
+    }
+
+    
+    public static Individual[] onePoinCrossover(Individual indiv1,Individual indiv2) {
+        Individual[] newIndiv = new Individual[2];
+        newIndiv[0] = new Individual();
+        newIndiv[1] = new Individual();
+
+        int randPoint = m_rand.nextInt(Individual.SIZE);
+        int i;
+        for (i=0; i<randPoint; ++i) {
+            newIndiv[0].setGene(i, indiv1.getGene(i));
+            newIndiv[1].setGene(i, indiv2.getGene(i));
+        }
+        for (; i<Individual.SIZE; ++i) {
+            newIndiv[0].setGene(i, indiv2.getGene(i));
+            newIndiv[1].setGene(i, indiv1.getGene(i));
+        }
+        return newIndiv;
+    }
+    
+    
+    public static Individual[] uniformCrossover(Individual indiv1,Individual indiv2){
+    	Individual[] newIndiv = new Individual[2];
+        newIndiv[0] = new Individual();
+        newIndiv[1] = new Individual();
+        
+        for(int i = 0; i< Individual.SIZE; i++){
+        	 if(Math.random() > 0.5)
+             	newIndiv[0].setGene(i, indiv1.getGene(i));             
+        	 else
+        		 newIndiv[0].setGene(i, indiv2.getGene(i));
+        	 if(Math.random() > 0.5)
+              	newIndiv[1].setGene(i, indiv1.getGene(i));             
+         	 else
+         		 newIndiv[1].setGene(i, indiv2.getGene(i));
+        }        
+        return newIndiv;        
+    }
+	
 }

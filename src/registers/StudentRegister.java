@@ -7,7 +7,7 @@ import beans.Student;
 public class StudentRegister {
 	
 	private static StudentRegister studentRegister=new StudentRegister();
-	private ArrayList<Student> students;
+	public static ArrayList<Student> students;
 
 	public ArrayList<Student> getStudents() {
 		return students;
@@ -58,5 +58,57 @@ public class StudentRegister {
 		}
 		return null;
 	}
+        public boolean updateStudent(String studentId, String courseCode,
+			String courseName, String semester, String grade){
+		for(Student student:students){
+                                        if(student.getId().equalsIgnoreCase(studentId)){
+                                                String[] num = student.getCourseNum();
+                                                String[] name = student.getCourseName();
+                                                String[] crsSem = student.getCourseSemester();
+                                                String[] crsgrade = student.getGrade();
 
+                                                if(num == null){
+                                                        num = new String[1]; 
+                                                        name = new String[1];
+                                                        crsSem = new String[1];
+                                                        crsgrade = new String[1];
+
+                                                        num[0] = courseCode;
+                                                        name[0] = courseName;
+                                                        crsSem[0] = semester;
+                                                        crsgrade[0] = grade;
+
+                                                        student.setCourseNum(num);
+                                                        student.setCourseName(name);
+                                                        student.setCourseSemester(crsSem);
+                                                        student.setGrade(crsgrade);
+                                                }else{
+                                                        String[] num1 = new String[num.length+1];
+                                                        String[] name1 = new String[name.length + 1];
+                                                        String[] crsSem1 = new String[crsSem.length + 1];
+                                                        String[] crsgrade1 = new String[crsgrade.length + 1];
+
+                                                        for(int k=0;k<num.length;k++){
+                                                                num1[k]=num[k];
+                                                                name1[k]=name[k];
+                                                                crsSem1[k]=crsSem[k];
+                                                                crsgrade1[k]=crsgrade[k];
+                                                        }
+                                                        num1[num.length]=courseCode;
+                                                        name1[num.length]=courseName;
+                                                        crsSem1[num.length]=semester;
+                                                        crsgrade1[num.length]=grade;
+
+                                                        student.setCourseNum(num1);
+                                                        student.setCourseName(name1);
+                                                        student.setCourseSemester(crsSem1);
+                                                        student.setGrade(crsgrade1);
+
+                                                }
+			                		
+			                		
+			                	}
+			                }
+		return false;
+	}
 }

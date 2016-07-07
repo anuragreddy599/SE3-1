@@ -10,6 +10,14 @@ public class University {
 		this.abbrevation = abbrevation;
 	}
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAbbrevation(String abbrevation) {
+        this.abbrevation = abbrevation;
+    }
+
 	public String getName() {
 		return name;
 	}

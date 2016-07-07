@@ -3,6 +3,25 @@ package beans;
 public class Faculty {
 
 	String lname,fname,school,degree,title,days,maxLoadFA,maxLoadSP,maxLoadSU;
+        
+        String courses;
+	int load;
+
+    public String getCourses() {
+        return courses;
+    }
+
+    public void setCourses(String courses) {
+        this.courses = courses;
+    }
+
+    public int getLoad() {
+        return load;
+    }
+
+    public void setLoad(int load) {
+        this.load = load;
+    }
 
 	public Faculty(String lname, String fname, String school, String degree,
 			String title, String days, String maxLoadFA, String maxLoadSP,

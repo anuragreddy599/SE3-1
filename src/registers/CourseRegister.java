@@ -7,7 +7,7 @@ import beans.Course;
 public class CourseRegister {
 
 	private static CourseRegister courseRegister=new CourseRegister();
-	private ArrayList<Course> courses;
+	public static ArrayList<Course> courses;
 
 	private CourseRegister(){
 		courses=new ArrayList<Course>();
@@ -19,7 +19,7 @@ public class CourseRegister {
 
 	public void addCourse(String code, String name, String desc, String hour,
 			String cap, String offeredFA, String offeredSP, String offeredSU,
-			ArrayList<String> preReqs, ArrayList<String> teachers){
+			String preReqs, String teachers){
 		Course course=new Course(code, name, desc, hour, cap, offeredFA, offeredSP,
 				offeredSU, preReqs, teachers);
 		courses.add(course);
@@ -27,7 +27,7 @@ public class CourseRegister {
 
 	public boolean editCourse(String code, String name, String desc, String hour,
 			String cap, String offeredFA, String offeredSP, String offeredSU,
-			ArrayList<String> preReqs, ArrayList<String> teachers){		
+			String preReqs, String teachers){		
 		
 		for(int i=0;i<courses.size();i++){
 			Course course=courses.get(i);			

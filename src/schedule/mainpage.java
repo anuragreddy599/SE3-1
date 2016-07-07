@@ -1,5 +1,13 @@
 package schedule;
+import beans.Course;
+import beans.Degree;
+import beans.DegreePlanReqs;
+import beans.Faculty;
+import beans.Section;
+import beans.Student;
+import beans.University;
 import java.awt.EventQueue;
+import scheduler.schedule;
 
 import javax.swing.JFrame;
 import javax.swing.GroupLayout;
@@ -22,7 +30,10 @@ import java.io.IOException;
 import javax.swing.JPanel;
 
 import controller.MainController;
+import java.util.ArrayList;
+import java.util.List;
 import registers.CourseRegister;
+import registers.DegreePlanReqsRegister;
 import registers.DegreeRegister;
 import registers.DegreeReqsRegister;
 import registers.FacultyRegister;
@@ -31,6 +42,10 @@ import registers.SemesterRegister;
 import registers.StudentCourseRegister;
 import registers.StudentRegister;
 import registers.UniversityRegister;
+import scheduler.Degree_Report;
+import scheduler.Faculty_Report;
+import scheduler.Section_Report;
+import scheduler.Student_Report;
 import utils.FileParser;
 import utils.FilesEnum;
 public class mainpage
@@ -41,24 +56,7 @@ public class mainpage
 	
 	public static void main(String[] args)
 	{
-		//FileParser parser=new FileParser();
-//		String studentUrl="C:\\Users\\LeMarc\\Downloads\\Files\\TestData\\STU.DUMP.CSV";
-//		String studentUrl="C:\\Users\\LeMarc\\Downloads\\Files\\TestData\\STU.DUMP.CSV";
-//		try {
-			//parser.saveStudentsInfo(parser.parse(studentUrl));
-			//System.out.println(StudentRegister.getInstance().getStudent("1000026").toString());
-//			DegreeRegister.getInstance().editDegree("MSE.EE", "GSECS", "Masters of Science in Engineering - Electrical Engineering", "15");
-//			System.out.println(DegreeRegister.getInstance().getDegree("MSE.EE").toString());
-//			DegreeRegister.getInstance().deleteDegree("MSE.EE");
-//			System.out.println(DegreeRegister.getInstance().getDegree("MSE.EE").toString());
-//		} catch (IOException e1) {
-//			String message = "An Error Occured While parsing.";
-//			JOptionPane.showMessageDialog(new JFrame(), message, "Dialog",JOptionPane.ERROR_MESSAGE);
-//			e1.printStackTrace();
-//		}
-		//System.out.println(MainController.getInstance().getCourses().get(0).toString());
-		
-		
+	
 		EventQueue.invokeLater(new Runnable()
 		{
 			public void run()
@@ -83,8 +81,11 @@ public class mainpage
 	{
 		frame = new JFrame();
 		//	univname = null;
-		university x=new university();
-		univname=x.uniname();
+		university x=new university(new javax.swing.JFrame(), true);
+		
+                University obj=UniversityRegister.uni;
+                if(null!=obj)
+                univname=obj.getName();
 		frame.getContentPane().setBackground(SystemColor.controlLtHighlight);
 		frame.setBounds(100, 100, 731, 476);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -116,8 +117,10 @@ public class mainpage
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setBackground(SystemColor.activeCaption);
 		frame.setJMenuBar(menuBar);
-
-		JMenu mnSecurity = new JMenu("Maintanance");
+                
+                String loggedInRole= MainClassExecute.loggedInRole;
+                
+		JMenu mnSecurity = new JMenu("Maintenance");
 		menuBar.add(mnSecurity);
 
 		JMenuItem mntmXyz = new JMenuItem("University");
@@ -125,7 +128,7 @@ public class mainpage
 			public void actionPerformed(ActionEvent arg0) 
 			{
 				frame.setVisible(false);
-				university x=new university();
+				university x=new university(new javax.swing.JFrame(), true);
 				x.main(null);
 			}
 		});
@@ -135,8 +138,10 @@ public class mainpage
 		mntmCourse.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) 
 			{
+                                //List<Course> courseList=CourseRegister.courses;
+                                //System.out.println(courseList);
 				frame.setVisible(false);
-				course x=new course();
+				course x=new course(new javax.swing.JFrame(), true);
 				x.main(null);
 			}
 		});
@@ -147,19 +152,43 @@ public class mainpage
 			public void actionPerformed(ActionEvent arg0) 
 			{
 				frame.setVisible(false);
-				degreeplan x=new degreeplan();
+				degreeplan x=new degreeplan(new javax.swing.JFrame(), true);
 				x.main(null);
 			}
 		});
 		mnSecurity.add(mntmDegreePlan);
+                
+                JMenuItem mntmForecast = new JMenuItem("Forecast");
+		mntmForecast.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				frame.setVisible(false);
+				degreeplan x=new degreeplan(new javax.swing.JFrame(), true);
+				x.main(null);
+			}
+		});
+		mnSecurity.add(mntmForecast);
+                
+                
+                JMenuItem mntmDegreePlanReq = new JMenuItem("Degree Plan Req");
+		mntmDegreePlanReq.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				frame.setVisible(false);
+				degreeplanReq x=new degreeplanReq(new javax.swing.JFrame(), true);
+				x.main(null);
+			}
+		});
+		mnSecurity.add(mntmDegreePlanReq);
 
 		JMenuItem mntmFaculity = new JMenuItem("Faculty");
 		mntmFaculity.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) 
 			{
+				 List<Faculty> courseList=FacultyRegister.faculties;                              
 				frame.setVisible(false);
-				faculty x=new faculty();
-				x.main(null);
+				faculity y=new faculity(new javax.swing.JFrame(), true);
+				y.main(null);
 			}
 		});
 		mnSecurity.add(mntmFaculity);
@@ -169,11 +198,34 @@ public class mainpage
 			public void actionPerformed(ActionEvent arg0) 
 			{
 				frame.setVisible(false);
-				student x=new student();
+				student x=new student(new javax.swing.JFrame(), true);
 				x.main(null);
 			}
 		});
 		mnSecurity.add(mntmStudent);
+                
+                JMenuItem mntmGradSchool = new JMenuItem("Grad School");
+		mntmGradSchool.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				frame.setVisible(false);
+				gradSchool x=new gradSchool(new javax.swing.JFrame(), true);
+				x.main(null);
+			}
+		});
+		mnSecurity.add(mntmGradSchool);
+               
+                JMenuItem mntmSemester = new JMenuItem("Semester");
+		mntmSemester.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				frame.setVisible(false);
+				semester x=new semester(new javax.swing.JFrame(), true);
+				x.main(null);
+			}
+		});
+		mnSecurity.add(mntmSemester);
+                
 
 		JMenu mnNewMenu = new JMenu("Import");
 		menuBar.add(mnNewMenu);
@@ -221,6 +273,17 @@ public class mainpage
 			}
 		});
 		mnNewMenu.add(mntmImportDegreePlan);
+                
+                JMenuItem mntmImportDegreePlanReq = new JMenuItem("Import Degree Plan Req");
+		mntmImportDegreePlanReq.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				frame.setVisible(false);
+				String[] args={Integer.toString(FilesEnum.DEGREE_REQ_FILE)};
+				importFile.main(args);
+			}
+		});
+		mnNewMenu.add(mntmImportDegreePlanReq);
 
 		JMenuItem mntmImportCourse = new JMenuItem("Import Course");
 		mntmImportCourse.addActionListener(new ActionListener() {
@@ -233,7 +296,7 @@ public class mainpage
 		});
 		mnNewMenu.add(mntmImportCourse);
 
-		JMenuItem mntmImportFaculity = new JMenuItem("Import Faculity");
+		JMenuItem mntmImportFaculity = new JMenuItem("Import Faculty");
 		mntmImportFaculity.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) 
 			{
@@ -267,7 +330,8 @@ public class mainpage
 		mnNewMenu.add(mntmImportStudentCourses);
 
 		JMenu mnSchedule = new JMenu("Schedule");
-		menuBar.add(mnSchedule);
+                if(loggedInRole.equals("D"))
+                    menuBar.add(mnSchedule);
 
 		JMenuItem mntmGenerateSchedule = new JMenuItem("Generate Schedule");
 		mntmGenerateSchedule.addActionListener(new ActionListener() {
@@ -289,12 +353,13 @@ public class mainpage
 				x.main(null);
 			}
 		});
-		mnSchedule.add(mntmTestSchedule);
+		//mnSchedule.add(mntmTestSchedule);
 
 		JMenu mnSystem = new JMenu("System");
-		menuBar.add(mnSystem);
-
-		JMenuItem mntmUser = new JMenuItem("User");
+                if(loggedInRole.equals("D"))
+                    menuBar.add(mnSystem);
+                
+		JMenuItem mntmUser = new JMenuItem(" Add User");
 		mntmUser.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) 
 			{
@@ -303,33 +368,98 @@ public class mainpage
 				x.main(null);
 			}
 		});
-		mnSystem.add(mntmUser);
+                
+                 mnSystem.add(mntmUser);
+                 
+                
 
-		JMenuItem mntmUserGroup = new JMenuItem("User Group");
-		mntmUserGroup.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) 
-			{
-				frame.setVisible(false);
-				groupuser x=new groupuser();
-				x.main(null);
-			}
-		});
-		mnSystem.add(mntmUserGroup);
-
-		JMenuItem mntmSystemFunction = new JMenuItem("System Function");
-		mntmSystemFunction.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) 
-			{
-				frame.setVisible(false);
-				systemfunction x=new systemfunction();
-				x.main(null);
-			}
-		});
-		mnSystem.add(mntmSystemFunction);
+		
 
 		JMenu mnReport = new JMenu("Report");
-		menuBar.add(mnReport);
+                if(loggedInRole.equals("D"))
+                    menuBar.add(mnReport);
 
+                JMenu mnSchedule_Report = new JMenu("Schedule Report");
+		mnReport.add(mnSchedule_Report);
+                JMenu mntmStudent_Report = new JMenu("Student Report ");
+                mnReport.add(mntmStudent_Report);
+                
+                JMenuItem mntmSection_Report = new JMenuItem("Section Report");
+		mnSchedule_Report.add(mntmSection_Report);
+               
+		
+		
+               
+               
+                
+                mntmSection_Report.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+                                        Section[] sectionArray=schedule.sectionArray;
+                                        if(sectionArray == null){
+					JFrame parent = new JFrame();
+			        JOptionPane.showMessageDialog(parent,"Please Generate the Schedule first.");
+				}else{
+                                        frame.setVisible(false);
+					new Section_Report(null, sectionArray).setVisible(true);
+                                        }
+			}
+		});
+                 JMenuItem mnFaculty_Report = new JMenuItem("Faculty Report");
+		mnSchedule_Report.add(mnFaculty_Report);
+		mnFaculty_Report.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+                            Section[] sectionArray=schedule.sectionArray;
+                            ArrayList<Faculty> facultyList=FacultyRegister.faculties;
+				if(sectionArray == null){
+					JFrame parent = new JFrame();
+			        JOptionPane.showMessageDialog(parent,"Please Generate the Schedule first.");
+				} else{
+					new Faculty_Report(null, sectionArray, facultyList.toArray(new Faculty[facultyList.size()])).setVisible(true);
+					frame.setVisible(false);
+				}
+				
+			}
+		});
+                 JMenuItem mntmDegree_Report = new JMenuItem("Degree Report");
+                mntmStudent_Report.add(mntmDegree_Report);
+                mntmDegree_Report.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Section[] sectionArray=schedule.sectionArray;
+                            ArrayList<Degree> degreeList=DegreeRegister.degrees;
+                            ArrayList<Student> studentList=StudentRegister.students;
+				if(studentList == null){
+					JFrame parent = new JFrame();
+			        JOptionPane.showMessageDialog(parent,"import Student first");
+				} else{
+					new Degree_Report(null,studentList.toArray(new Student[studentList.size()]), 
+                                                degreeList.toArray(new Degree[degreeList.size()])).setVisible(true);
+					frame.setVisible(false);
+				}
+
+			}
+		});
+                 JMenuItem mntmStudent1_Report = new JMenuItem("Student Report");
+                mntmStudent_Report.add(mntmStudent1_Report);
+                mntmStudent1_Report.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+                            
+                            Section[] sectionArray=schedule.sectionArray;
+                            ArrayList<Degree> degreeList=DegreeRegister.degrees;
+                            ArrayList<Student> studentList=StudentRegister.students;
+                             ArrayList<DegreePlanReqs> degreePlanList=DegreePlanReqsRegister.degreePlanReqs;
+				if(studentList == null || studentList.size()==0){
+					JFrame parent = new JFrame();
+			        JOptionPane.showMessageDialog(parent,"Please Generate the Schedule.");
+				} else{
+					new Student_Report(null, studentList.toArray(new Student[studentList.size()]), 
+                                                sectionArray, degreePlanList.toArray(new DegreePlanReqs[degreePlanList.size()])).setVisible(true);
+					frame.setVisible(false);
+				}
+
+
+				
+			}
+		});
 		JMenuItem mntmGenerateReport = new JMenuItem("Generate Report");
 		mntmGenerateReport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) 
@@ -339,6 +469,21 @@ public class mainpage
 				x.main(null);
 			}
 		});
-		mnReport.add(mntmGenerateReport);
+		//mnReport.add(mntmGenerateReport);
+                
+                JMenuItem logoutItem = new JMenuItem("Log out");
+		logoutItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				frame.setVisible(false);
+				MainClassExecute x=new MainClassExecute();
+				x.main(null);
+			}
+		});
+                menuBar.add(logoutItem);
+                
+                //Initialize all data
+                if(!importFile.isImported)
+                    importFile.importAllFiles();
 	}
 }

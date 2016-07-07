@@ -7,7 +7,7 @@ import beans.Faculty;
 public class FacultyRegister {
 	
 	private static FacultyRegister facultyRegister=new FacultyRegister();
-	private ArrayList<Faculty> faculties;
+	public static ArrayList<Faculty> faculties;
 
 	public ArrayList<Faculty> getAllFaculties() {
 		return faculties;

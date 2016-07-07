@@ -7,7 +7,7 @@ import beans.Degree;
 public class DegreeRegister {
 	
 	private static DegreeRegister degreeRegister=new DegreeRegister();
-	private ArrayList<Degree> degrees;
+	public static ArrayList<Degree> degrees;
 
 	public ArrayList<Degree> getAllDegrees() {
 		return degrees;

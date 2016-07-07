@@ -16,13 +16,13 @@ import registers.StudentRegister;
 import registers.UniversityRegister;
 
 import com.opencsv.CSVReader;
+import registers.DegreePlanReqsRegister;
 
 public class FileParser {
 	//private static FileParser fileParser = null;
 	public FileParser() {
 		
 	}
-
 
 	public List<String[]> parse(String url) throws IOException{
 		String csvFilename = url;
@@ -46,7 +46,7 @@ public class FileParser {
 	public int saveGradSchoolInfo(List<String[]> content){		
 		String gradSchool[] = content.get(1);
 		GradSchoolRegister gradSchoolReg=GradSchoolRegister.getInstance();
-		gradSchoolReg.addGradSchool(gradSchool[0], gradSchool[1]);
+		gradSchoolReg.addGradSchool(gradSchool[1], gradSchool[0]);
 		return 1;
 	}
 	
@@ -76,12 +76,12 @@ public class FileParser {
 		content.remove(0);
 		int counter=0;
 		for(String[] row:content){
-			ArrayList<String> preReqs=convertToList(row[8].split(","));
-			ArrayList<String> teachers=convertToList(row[9].split(","));
+			//ArrayList<String> preReqs=convertToList(row[8].split(","));
+			//ArrayList<String> teachers=convertToList(row[9].split(","));
 
 			CourseRegister courseReg=CourseRegister.getInstance();
 			courseReg.addCourse(row[0], row[1], row[2],row[3],row[4],row[5],row[6],
-					row[7],preReqs,teachers);
+					row[7],row[8],row[9]);
 			counter=counter+1;
 		}
 		return counter;
@@ -159,6 +159,17 @@ public class FileParser {
 			return null;
 		}
 
+	}
+        
+        public int saveDegreePlanReq(List<String[]> content){
+		content.remove(0);
+		int counter=0;
+		for(String[] row:content){
+			DegreePlanReqsRegister degPlanReg=DegreePlanReqsRegister.getInstance();
+			degPlanReg.addDegreePlanReqs(row[0], row[1], row[2],row[3],row[4]);
+			counter=counter+1;
+		}
+		return counter;
 	}
 
 }

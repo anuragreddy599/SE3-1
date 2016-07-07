@@ -5,11 +5,11 @@ import java.util.ArrayList;
 public class Course {
 
 	String code,name,desc,hour,cap,offeredFA,offeredSP,offeredSU;
-	ArrayList<String> preReqs,teachers;
+	String preReqs,teachers;
 
 	public Course(String code, String name, String desc, String hour,
 			String cap, String offeredFA, String offeredSP, String offeredSU,
-			ArrayList<String> preReqs, ArrayList<String> teachers) {
+			String preReqs, String teachers) {
 		super();
 		this.code = code;
 		this.name = name;
@@ -19,9 +19,9 @@ public class Course {
 		this.offeredFA = offeredFA;
 		this.offeredSP = offeredSP;
 		this.offeredSU = offeredSU;
-		if(!preReqs.get(0).equalsIgnoreCase("none")){
+		
 			this.preReqs = preReqs;
-		}
+		
 		this.teachers = teachers;
 	}
 
@@ -89,19 +89,19 @@ public class Course {
 		this.offeredSU = offeredSU;
 	}
 
-	public ArrayList<String> getTeachers() {
+	public String getTeachers() {
 		return teachers;
 	}
 
-	public void setTeachers(ArrayList<String> teachers) {
+	public void setTeachers(String teachers) {
 		this.teachers = teachers;
 	}
 
-	public ArrayList<String> getPreReqs() {
+	public String getPreReqs() {
 		return preReqs;
 	}
 
-	public void setPreReqs(ArrayList<String> preReqs) {
+	public void setPreReqs(String preReqs) {
 		this.preReqs = preReqs;
 	}
 
@@ -116,8 +116,9 @@ public class Course {
 		sb.append(this.offeredFA+"\n");
 		sb.append(this.offeredSP+"\n");
 		sb.append(this.offeredSU);
-
-		if(this.preReqs!=null){
+                sb.append(preReqs);
+                sb.append(teachers);
+		/*if(this.preReqs!=null){
 			sb.append("\n");
 			for(String preReq:this.preReqs){
 				sb.append(preReq);
@@ -129,7 +130,7 @@ public class Course {
 		for(String teacher:this.teachers){
 			sb.append(teacher);
 			sb.append(",");
-		}
+		}*/
 		return sb.toString();
 	}
 

@@ -10,5 +10,6 @@ public class FilesEnum {
 	public static final int FACULTY_FILE=5;
 	public static final int STUDENT_FILE=6;
 	public static final int STUDENTCOURSES_FILE=7;
+        public static final int DEGREE_REQ_FILE=8;
 
 }

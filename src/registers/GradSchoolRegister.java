@@ -2,10 +2,11 @@ package registers;
 
 import beans.GradSchool;
 
+
 public class GradSchoolRegister{
 
 	private static GradSchoolRegister gradSchoolRegister=new GradSchoolRegister();
-	private GradSchool gradSchool;
+	public static GradSchool gradSchool;
 
 	private GradSchoolRegister(){}
 
@@ -20,5 +21,9 @@ public class GradSchoolRegister{
 	public GradSchool getGradSchool(){
 		return gradSchool;
 	}
-
+         public boolean editGradSchool(String name,String abrevation){
+		gradSchool.setAbbrevation(abrevation);
+                gradSchool.setName(name);
+		return true;
+	}
 }

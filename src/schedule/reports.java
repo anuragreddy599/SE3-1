@@ -22,9 +22,14 @@ import java.awt.Color;
 import java.awt.List;
 import javax.swing.JFormattedTextField;
 import javax.swing.JEditorPane;
+import static schedule.generateschedule.semesterSelected;
+import scheduler.printReport;
+import scheduler.schedule;
 
 public class reports {
-
+    
+    
+        JComboBox comboBox = new JComboBox();
 	private JFrame frame;
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -54,8 +59,18 @@ public class reports {
 		lblUniversityEditPage.setBackground(SystemColor.activeCaption);
 		lblUniversityEditPage.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		
+                //JComboBox comboBox = new JComboBox();
+                comboBox.addItem("Schedule");
+                comboBox.addItem("Student");
+                 String selectedReport="";
 		JButton btnDelete = new JButton("Generate");
 		btnDelete.setBackground(SystemColor.activeCaption);
+                btnDelete.addActionListener(new ActionListener() {
+                   
+			public void actionPerformed(ActionEvent arg0) {
+                            generateReport();
+			}
+		});
 		
 		JButton btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener()
@@ -71,7 +86,8 @@ public class reports {
 		
 		JLabel lblReports = new JLabel("Reports");
 		
-		JComboBox comboBox = new JComboBox();
+		
+               
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -110,4 +126,10 @@ public class reports {
 		);
 		frame.getContentPane().setLayout(groupLayout);
 	}
+        void generateReport(){
+            String selectedReport=comboBox.getSelectedItem().toString();
+            printReport print=new printReport();
+		print.print();
+            
+        }
 }
